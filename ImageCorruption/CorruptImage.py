@@ -9,43 +9,54 @@ def convertToJpg(file):
     return rgb_im
 
 
-def SaveImageFromArray(arr):
-    img = Image.fromarray(arr)
-    img.save("outTestImage.png")
-
-
 def checkCorrupted(arr, originArr, x, y, z):
 
     cnt = 0
     for i in range(x):
         for j in range(y):
-            for k in range(z):
-                originValue = originArr[i][j][k]
-                newValue = arr[i][j][k]
+            originValue = originArr[i][j][0]
+            newValue = arr[i][j][0]
 
-                if newValue != originValue:
-                    cnt += 1
-                    print(str(cnt)+".the differnce : Origin["+str(originValue)+"], New["+str(newValue)+"]")
+            if newValue != originValue:
+                cnt += 1
+                print(str(cnt)+".the differnce : Origin["+str(originValue)+"], New["+str(newValue)+"]")
+
+    print(arr)
+    print(originArr)
 
 
-def fill(x, y, z, arr, flag):
-    newValue = arr[x][y][z]
+def fill(x, y, arr, flag):
+    newValue = arr[x][y][0]
+    origin = arr[x][y][0]
+
     if flag == 0:
         newValue += 100
-        if newValue >= 255:
-            arr[x][y][z] = 255
-        else:
-            arr[x][y][z] = newValue
+        for i in range(0, 3):
+            if newValue >= 255:
+                arr[x][y][i] = 255
+            else:
+                arr[x][y][i] = newValue
     else:
         newValue -= 100
-        if newValue <= 0:
-            arr[x][y][z] = 0
-        else:
-            arr[x][y][z] = newValue
+        for i in range(0, 3):
+            if newValue <= 0:
+                arr[x][y][i] = 0
+            else:
+                arr[x][y][i] = newValue
+
+
+        if(arr[x][y][0]!=arr[x][y][1]):
+            print("---------------")
+            print(arr[x][y][0])
+            print(arr[x][y][1])
+            print(arr[x][y][2])
+            print(origin)
+            print("---------------")
+
 
 
 def execute(rate):
-    img = Image.open("testImg.png")
+    img = Image.open("image/lena.bmp")
     jpgImage = convertToJpg(img)
     arr = numpy.array(jpgImage)
     originArr = numpy.array(jpgImage)
@@ -55,7 +66,7 @@ def execute(rate):
     dim_z = numpy.size(arr, 2)
 
     #make sure polluted dots is plural
-    times_double = arr.size * rate / 100
+    times_double = dim_x*dim_y * rate / 100
     times_int = 0
     if round(times_double) % 2 != 0:
         times_int = round(times_double)-1
@@ -66,18 +77,15 @@ def execute(rate):
     for i in range(0, times_int):
         randX = randint(0, dim_x - 1)
         randY = randint(0, dim_y - 1)
-        randZ = randint(0, dim_z - 1)
-        fill(randX, randY, randZ, arr, i % 2)
+        fill(randX, randY, arr, i % 2)
 
         nowProcess = round(i / times_double * 100)
-
-
         if newProcess != nowProcess:
-            print(str(newProcess) + "%")
+            print("Corruption Process : "+str(newProcess) + "%")
         newProcess = nowProcess
-
+    print("Corruption Process : 100%");
 
     im = Image.fromarray(arr)
-    im.save("outTestImage.png")
+    im.save("image/dirtyLena.jpg")
     #checkCorrupted(arr, originArr, dim_x, dim_y, dim_z)
 
